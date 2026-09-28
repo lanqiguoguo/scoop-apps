@@ -1,0 +1,44 @@
+{
+    "version": "1.3.61",
+    "description": "通用 AI IDE 账号管理工具",
+    "homepage": "https://github.com/jlcodes99/cockpit-tools/",
+    "license": "Unknown",
+    "notes": [
+        "Cockpit Tools 是通用 AI IDE 账号管理工具",
+        "用户数据目录：%USERPROFILE%\\.antigravity_cockpit\\（账号、令牌、config.json、备份与日志）",
+        "本包通过环境变量 COCKPIT_TOOLS_DATA_DIR 将数据目录重定向到 Scoop 的 persist（$persist_dir\\data）",
+        "首次安装时若 persist 为空且存在旧数据目录，会自动把旧数据复制进 persist，原目录保留不删除",
+        "卸载本包会移除该环境变量，persist 中的数据会保留，需要时可手动复制回 %USERPROFILE%\\.antigravity_cockpit\\",
+        "升级或卸载前请先退出 Cockpit Tools，避免数据文件被占用"
+    ],
+    "url": "https://gh-proxy.org/https://github.com/jlcodes99/cockpit-tools/releases/download/v1.3.61/Cockpit.Tools_1.3.61_x64-setup.exe#/dl.7z",
+    "hash": "21853121488cf628300228da8485f4a2fff874bd91c13670d969bcaf709cd665",
+    "shortcuts": [
+        [
+            "cockpit-tools.exe",
+            "Cockpit-Tools"
+        ]
+    ],
+    "post_install": [
+        "$target = Join-Path $persist_dir 'data'",
+        "$legacy = Join-Path $env:USERPROFILE '.antigravity_cockpit'",
+        "ensure $target",
+        "",
+        "$profileFiles = @(Get-ChildItem -LiteralPath $target -Force -ErrorAction SilentlyContinue)",
+        "if ($profileFiles.Count -eq 0 -and (Test-Path -LiteralPath $legacy)) {",
+        "    Write-Host \"正在把旧数据目录播种到 persist：$legacy\"",
+        "    & robocopy $legacy $target /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null",
+        "    if ($LASTEXITCODE -gt 7) {",
+        "        Write-Host \"播种失败（robocopy 退出码 $LASTEXITCODE），旧数据未改动，可手动复制到 $target\"",
+        "    }",
+        "}"
+    ],
+    "env_set": {
+        "COCKPIT_TOOLS_DATA_DIR": "$persist_dir\\data"
+    },
+    "persist": "data",
+    "checkver": "github",
+    "autoupdate": {
+        "url": "https://gh-proxy.org/https://github.com/jlcodes99/cockpit-tools/releases/download/v$version/Cockpit.Tools_$version_x64-setup.exe#/dl.7z"
+    }
+}

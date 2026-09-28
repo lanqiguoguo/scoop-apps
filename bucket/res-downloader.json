@@ -1,0 +1,88 @@
+{
+    "version": "3.1.3",
+    "description": "视频号、小程序、抖音、快手、小红书、直播流、m3u8、酷狗、QQ音乐等常见网络资源下载!",
+    "homepage": "https://github.com/putyy/res-downloader",
+    "license": "Apache-2.0",
+    "notes": [
+        "用户数据目录：%APPDATA%\\res-downloader\\",
+        "  - config.json：下载目录、代理、嗅探规则、MimeMap 等全部设置",
+        "  - logs\\app.log：运行日志",
+        "  - install.lock / pass.cache / cert.crt：证书安装状态等运行标记",
+        "本包会将该目录持久化到 Scoop 的 persist，并在原路径创建 Junction 指向 persist（升级/重装不丢失配置）",
+        "%APPDATA%\\res-downloader.exe 下的 WebView2 浏览器缓存不属于应用数据，未纳入 persist",
+        "应用对系统代理与证书库的修改不属于 Scoop persist，卸载前请先在应用内关闭代理并移除证书"
+    ],
+    "architecture": {
+        "64bit": {
+            "url": "https://gh-proxy.org/https://github.com/putyy/res-downloader/releases/download/3.1.3/res-downloader_3.1.3_win_amd64.exe#/dl.7z",
+            "hash": "ac0ede0e25b5ff687ad56098bf9757e428ca0d6126c677546ed77652ef967344"
+        },
+        "arm64": {
+            "url": "https://gh-proxy.org/https://github.com/putyy/res-downloader/releases/download/3.1.3/res-downloader_3.1.3_win_arm64.exe#/dl.7z",
+            "hash": "c30e202d1991562c13ba5f860b011a8838923395381d5e949e3a7f4d6e41f52a"
+        }
+    },
+    "pre_install": "Remove-Item -Path \"$dir\\`$PLUGINSDIR\", \"$dir\\[NSIS].nsi\" -Recurse -Force",
+    "shortcuts": [
+        [
+            "res-downloader.exe",
+            "res-downloader"
+        ]
+    ],
+    "post_install": [
+        "$source = Join-Path $env:APPDATA 'res-downloader'",
+        "$target = Join-Path $persist_dir 'data'",
+        "ensure $target",
+        "",
+        "if (Test-Path $source) {",
+        "    $item = Get-Item -LiteralPath $source -Force",
+        "    if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {",
+        "        Write-Host \"检测到已存在的联接点：$source，跳过创建\"",
+        "        return",
+        "    }",
+        "    if (-not $item.PSIsContainer) {",
+        "        throw \"配置路径已存在且不是目录：$source\"",
+        "    }",
+        "",
+        "    & robocopy $source $target /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null",
+        "    if ($LASTEXITCODE -gt 7) {",
+        "        Write-Host \"迁移失败，保留原目录：$source\"",
+        "        return",
+        "    }",
+        "",
+        "    $backup = \"$source.backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')\"",
+        "    try {",
+        "        Move-Item -LiteralPath $source -Destination $backup -Force",
+        "        Write-Host \"已备份原配置目录：$backup\"",
+        "    } catch {",
+        "        Write-Host \"无法重命名原目录：$source\"",
+        "        return",
+        "    }",
+        "}",
+        "",
+        "New-Item -Path $source -ItemType Junction -Value $target | Out-Null"
+    ],
+    "post_uninstall": [
+        "$source = Join-Path $env:APPDATA 'res-downloader'",
+        "if (Test-Path $source) {",
+        "    $item = Get-Item -LiteralPath $source -Force",
+        "    if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {",
+        "        Remove-Item -LiteralPath $source -Force",
+        "    }",
+        "}"
+    ],
+    "persist": "data",
+    "checkver": {
+        "github": "https://github.com/putyy/res-downloader"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://gh-proxy.org/https://github.com/putyy/res-downloader/releases/download/$version/res-downloader_$version_win_amd64.exe#/dl.7z"
+            },
+            "arm64": {
+                "url": "https://gh-proxy.org/https://github.com/putyy/res-downloader/releases/download/$version/res-downloader_$version_win_arm64.exe#/dl.7z"
+            }
+        }
+    }
+}

@@ -1,0 +1,36 @@
+{
+    "version": "1.8.0.Alpha",
+    "description": "Your most handy video processing software",
+    "homepage": "https://github.com/HaujetZhao/QuickCut",
+    "license": "MPL-2.0",
+    "notes": [
+        "用户数据为安装目录下的 database.db（SQLite：命令预设、API 配置、偏好设置、语言等）",
+        "应用启动时会切换到自身所在目录并读写 ./database.db，本包通过 persist 将该文件持久化到 Scoop persist（升级/重装不丢失预设）",
+        "首次安装时会预创建空的 database.db，避免 Scoop 把不存在的 persist 文件默认建成目录（同名目录会让 SQLite 无法打开数据库）",
+        "卸载默认保留 persist 数据；如需彻底清除请使用 scoop uninstall -p QuickCut",
+        "手动下载地址: https://wwe.lanzoux.com/b015n2n5a#f4t3"
+    ],
+    "architecture": {
+        "64bit": {
+            "url": "https://gh-proxy.org/https://github.com/Weidows-projects/scoop-3rd/releases/download/1.0.0/QuickCut.7z",
+            "hash": "d590e48bc141126e462f2ee53895e94157a95da12a196b732ee556c0b322eee2",
+            "pre_install": [
+                "Move-Item \"$dir\\QuickCut\\*\" $dir -Force",
+                "Remove-Item \"$dir\\QuickCut\"",
+                "if (!(Test-Path \"$dir\\database.db\")) { New-Item -ItemType File -Path \"$dir\\database.db\" | Out-Null }"
+            ]
+        }
+    },
+    "bin": "ffmpeg.exe",
+    "shortcuts": [
+        [
+            "QuickCut.exe",
+            "QuickCut"
+        ]
+    ],
+    "persist": "database.db",
+    "checkver": {
+        "url": "https://github.com/HaujetZhao/QuickCut/releases/latest",
+        "regex": "href=\"\\/HaujetZhao\\/QuickCut\\/releases\\/tag\\/v(.*?)\""
+    }
+}

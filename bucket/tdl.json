@@ -1,0 +1,63 @@
+{
+    "version": "0.20.4",
+    "homepage": "https://github.com/iyear/tdl",
+    "description": "A cli utility for downloading files from Telegram, backing up your Telegram data, uploading files to Telegram, and recovering your Telegram data.",
+    "license": "AGPL-3.0",
+    "architecture": {
+        "32bit": {
+            "url": "https://gh-proxy.org/https://github.com/iyear/tdl/releases/download/v0.20.4/tdl_Windows_32bit.zip",
+            "hash": "4f30161847a0cb25b412abd4f1f2dd90f89b7324a71cde7b0d5ad5b7f3539b20"
+        },
+        "64bit": {
+            "url": "https://gh-proxy.org/https://github.com/iyear/tdl/releases/download/v0.20.4/tdl_Windows_64bit.zip",
+            "hash": "3f219779c07a4be628c34491b9910c18a3b0a0ca0b0aa4f283bb83ab33b007c8"
+        },
+        "arm64": {
+            "url": "https://gh-proxy.org/https://github.com/iyear/tdl/releases/download/v0.20.4/tdl_Windows_arm64.zip",
+            "hash": "70d933fb511ffc96f22ee0f896e64e2d1921ba108c527fdf5f4a82c66c4b8ec7"
+        }
+    },
+    "bin": "tdl.exe",
+    "notes": [
+        "tdl 的账户/会话数据默认存放在 %USERPROFILE%\\.tdl\\data（日志在 %USERPROFILE%\\.tdl\\log）",
+        "本包通过官方环境变量 TDL_STORAGE 将数据存储重定向到 Scoop persist 的 $persist_dir\\data（TDL_STORAGE 要求值为 JSON，安装时由 Scoop 展开计算为 {\"type\":\"bolt\",\"path\":\"...\"}）",
+        "首次安装时若 persist 为空且已存在 %USERPROFILE%\\.tdl\\data，会自动把原会话数据播种到 persist；之后升级/卸载时 persist 中的数据保留",
+        "日志与扩展目录仍位于 %USERPROFILE%\\.tdl（含 extensions），不属于账户数据，不会被本包迁移"
+    ],
+    "env_set": {
+        "TDL_STORAGE": "$(@{type='bolt';path=(Join-Path $persist_dir 'data')} | ConvertTo-Json -Compress)"
+    },
+    "persist": "data",
+    "post_install": [
+        "$target = Join-Path $persist_dir 'data'",
+        "$legacy = Join-Path $env:USERPROFILE '.tdl\\data'",
+        "ensure $target",
+        "",
+        "$files = @(Get-ChildItem -LiteralPath $target -Force -ErrorAction SilentlyContinue)",
+        "if ($files.Count -eq 0 -and (Test-Path -LiteralPath $legacy -PathType Container)) {",
+        "    Write-Host \"Seeding tdl session data from the previous data directory: $legacy\"",
+        "    & robocopy $legacy $target /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null",
+        "    if ($LASTEXITCODE -gt 7) {",
+        "        Write-Host \"Seeding failed with robocopy exit code $LASTEXITCODE. The previous data was left untouched; copy it into $target manually to keep it.\"",
+        "    }",
+        "}"
+    ],
+    "checkver": "github",
+    "autoupdate": {
+        "architecture": {
+            "32bit": {
+                "url": "https://gh-proxy.org/https://github.com/iyear/tdl/releases/download/v$version/tdl_Windows_32bit.zip"
+            },
+            "64bit": {
+                "url": "https://gh-proxy.org/https://github.com/iyear/tdl/releases/download/v$version/tdl_Windows_64bit.zip"
+            },
+            "arm64": {
+                "url": "https://gh-proxy.org/https://github.com/iyear/tdl/releases/download/v$version/tdl_Windows_arm64.zip"
+            }
+        },
+        "hash": {
+            "url": "$baseurl/tdl_checksums.txt",
+            "regex": "$sha256\\s+$fname"
+        }
+    }
+}

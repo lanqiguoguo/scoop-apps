@@ -1,0 +1,57 @@
+{
+    "version": "6.2.0",
+    "description": "One-stop online barrage drama tracking platform",
+    "homepage": "https://github.com/open-ani/ani",
+    "license": "GPL-3.0-only",
+    "notes": [
+        "Ani（open-ani/ani）的用户数据目录为 %APPDATA%\\Him188\\Ani\\data（含日志），缓存目录为 %LOCALAPPDATA%\\Him188\\Ani\\cache",
+        "本包已将 %APPDATA%\\Him188 迁移并持久化到 Scoop persist（持久化子目录名 data），并在原路径创建 Junction 指向 persist",
+        "缓存目录 %LOCALAPPDATA%\\Him188\\Ani\\cache 不属于持久化范围，可安全删除",
+        "升级/卸载时数据保留在 persist 中，卸载仅移除 Junction 链接"
+    ],
+    "architecture": {
+        "64bit": {
+            "url": "https://gh-proxy.org/https://github.com/open-ani/ani/releases/download/v6.2.0/ani-6.2.0-windows-x86_64.zip",
+            "hash": "a5ef42a28ce96789edd46199d51ee7e15ff938d8e1130ba06309694d38f7357f",
+            "extract_dir": "Ani"
+        }
+    },
+    "bin": "Ani.exe",
+    "shortcuts": [
+        [
+            "Ani.exe",
+            "Ani"
+        ]
+    ],
+    "installer": {
+        "script": [
+            "Import-Module $(Join-Path $(Find-BucketDirectory -Root -Name $bucket) scripts/AppsUtils.psm1)",
+            "Mount-ExternalRuntimeData -Source \"$persist_dir\\data\" -Target \"$env:APPDATA\\Him188\"",
+            "Remove-Module -Name AppsUtils"
+        ]
+    },
+    "uninstaller": {
+        "script": [
+            "$target = Join-Path $env:APPDATA 'Him188'",
+            "if (Test-Path -LiteralPath $target) {",
+            "    $item = Get-Item -LiteralPath $target -Force -ErrorAction SilentlyContinue",
+            "    if ($item -and ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {",
+            "        Remove-Item -LiteralPath $target -Force",
+            "    }",
+            "}"
+        ]
+    },
+    "persist": "data",
+    "checkver": {
+        "url": "https://api.github.com/repos/open-ani/ani/releases",
+        "jsonpath": "$..tag_name",
+        "regex": "v([-\\d.\\w]+)"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://gh-proxy.org/https://github.com/open-ani/ani/releases/download/v$version/ani-$version-windows-x86_64.zip"
+            }
+        }
+    }
+}

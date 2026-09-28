@@ -1,0 +1,66 @@
+{
+  "version": "2.0.23.34",
+  "description": "一款开源的第三方多平台直播聚合播放器",
+  "homepage": "https://github.com/liuchuancong/pure_live",
+  "license": {
+    "identifier": "AGPL-3.0 license",
+    "url": "https://github.com/liuchuancong/pure_live#AGPL-3.0-1-ov-file"
+  },
+  "notes": [
+    "PureLive 的用户数据目录为安装目录下的 AppData 子目录（Scoop persist 子目录名 appdata；Windows 路径不区分大小写，二者为同一目录）",
+    "%APPDATA%\\com.mystyle 为旧版/回退数据目录，本包会将其迁移到 persist 中的同一目录并创建 Junction",
+    "升级/卸载时数据保留在 Scoop persist 中，卸载仅移除链接"
+  ],
+  "architecture": {
+    "64bit": {
+      "url": "https://gh-proxy.org/https://github.com/liuchuancong/pure_live/releases/download/v2.0.23/PureLive-2.0.23+34-windows-x64-setup.exe",
+      "hash": "1d10b41c5fd136178b43b58bacb8b1a8228a078ddfd32eceb24559d8734a4de6"
+    }
+  },
+  "innosetup": true,
+  "installer": {
+    "script": [
+      "# handle runtime cache",
+      "Import-Module $(Join-Path $(Find-BucketDirectory -Root -Name $bucket) scripts/AppsUtils.psm1)",
+      "Mount-ExternalRuntimeData -Source \"$persist_dir\\appdata\" -Target \"$env:APPDATA\\com.mystyle\"",
+      "Remove-Module -Name AppsUtils"
+    ]
+  },
+  "uninstaller": {
+    "script": [
+      "$target = Join-Path $env:APPDATA 'com.mystyle'",
+      "if (Test-Path -LiteralPath $target) {",
+      "    $item = Get-Item -LiteralPath $target -Force -ErrorAction SilentlyContinue",
+      "    if ($item -and ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {",
+      "        Remove-Item -LiteralPath $target -Force",
+      "    }",
+      "}"
+    ]
+  },
+  "persist": "appdata",
+  "bin": [
+    [
+      "pure_live.exe",
+      "PureLive"
+    ]
+  ],
+  "shortcuts": [
+    [
+      "pure_live.exe",
+      "PureLive"
+    ]
+  ],
+  "checkver": {
+    "github": "https://api.github.com/repos/liuchuancong/pure_live/releases",
+    "jp": "$[0].assets[*].browser_download_url",
+    "regex": "/releases/download/v([\\d.]+)/PureLive-([\\d.]+)%2B([\\d]+)-windows",
+    "replace": "${1}.${3}"
+  },
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://gh-proxy.org/https://github.com/liuchuancong/pure_live/releases/download/v$match1/PureLive-$match2+$match3-windows-x64-setup.exe"
+      }
+    }
+  }
+}
