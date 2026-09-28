@@ -19,10 +19,8 @@
     "post_install": [
         "$dataDir = Join-Path $persist_dir 'data'",
         "$dshDir = Join-Path $persist_dir 'dsh-home'",
-        "$piDir = Join-Path $persist_dir 'pi-home'",
         "ensure $dataDir",
         "ensure $dshDir",
-        "ensure $piDir",
         "",
         "# app owned userData root: 0.7.x uses %APPDATA%/pi-desktop, main branch renames it to %APPDATA%/PiDeck.",
         "# both names are linked to the same persist dir, so whichever name the app uses ends up in persist",
@@ -53,7 +51,8 @@
         "    Write-Host \"Linked app data dir to persist: $Source\"",
         "}",
         "",
-        "# homes shared with the standalone pi / dsh CLIs: linked only while they hold no data of their own",
+        "# DSH_HOME of the embedded DSH backend is shared with the standalone dsh CLI:",
+        "# it is linked only while it holds no data of its own",
         "$linkIfVacant = {",
         "    param([string]$Source, [string]$Target, [string]$Label)",
         "    if (Test-Path $Source) {",
@@ -74,11 +73,10 @@
         "",
         "& $linkAppData (Join-Path $env:APPDATA 'pi-desktop') $dataDir",
         "& $linkAppData (Join-Path $env:APPDATA 'PiDeck') $dataDir",
-        "& $linkIfVacant (Join-Path $env:USERPROFILE '.dsh') $dshDir 'DSH home (.dsh)'",
-        "& $linkIfVacant (Join-Path $env:USERPROFILE '.pi') $piDir 'pi CLI home (.pi)'"
+        "& $linkIfVacant (Join-Path $env:USERPROFILE '.dsh') $dshDir 'DSH home (.dsh)'"
     ],
     "post_uninstall": [
-        "$links = @((Join-Path $env:APPDATA 'pi-desktop'), (Join-Path $env:APPDATA 'PiDeck'), (Join-Path $env:USERPROFILE '.dsh'), (Join-Path $env:USERPROFILE '.pi'))",
+        "$links = @((Join-Path $env:APPDATA 'pi-desktop'), (Join-Path $env:APPDATA 'PiDeck'), (Join-Path $env:USERPROFILE '.dsh'))",
         "foreach ($link in $links) {",
         "    if (Test-Path $link) {",
         "        $item = Get-Item -LiteralPath $link -Force",
@@ -101,9 +99,9 @@
         "      两个名字都已 Junction 到 persist\\data，因此无论应用用哪个名字，数据都落在 persist",
         "      其下有 logs 运行日志、pi-runtime 引导安装的便携 Node 与 pi、runtimes\\dsh 下载的 DSH runtime、chat-workspace、config-backups、imagegen、instance-locks 等",
         "  - %USERPROFILE%\\.dsh：DSH_HOME，PiDeck 内嵌的 DSH 后端使用（PiDeck 私有状态在 .dsh\\.pideck）。已 Junction 到 persist\\dsh-home；未配置或未启动 DSH 后端时该目录可能为空",
-        "  - %USERPROFILE%\\.pi：pi CLI 的配置与会话目录（.pi\\agent 下的 settings.json、auth.json、models.json、mcp.json、skills、sessions 等，应用启动即会写入）。已 Junction 到 persist\\pi-home",
+        "  - %USERPROFILE%\\.pi 属于单独安装的 pi CLI（其 agent\\ 下的 settings.json、auth.json、models.json、sessions 等，PiDeck 也会写入 mcp.json 与 skills），本包不接管、不做 Junction，由 pi 自己管理",
         "%APPDATA%\\pi-desktop 与 %APPDATA%\\PiDeck 若已存在，会先整体搬到 persist 并在原位置留下 .backup-<时间戳> 备份",
-        ".dsh 与 .pi 只在不存在或为空时才建立 Junction：若你已单独装过 pi 或 dsh CLI，其数据不会被搬动，也不会进入 persist",
+        ".dsh 只在目录不存在或为空时才建立 Junction：若你已单独装过 dsh CLI，其数据不会被搬动，也不会进入 persist",
         "卸载只删除上述 Junction 链接，persist 中的数据保留",
         "PiDeck 依赖 PATH 上的 pi 命令；缺失时可在设置页用「环境引导」一键安装便携 Node + pi，结果落在 persist\\data\\pi-runtime",
         "应用自带自动更新（默认 AtomGit 源、默认自动下载）：由 Scoop 管理时建议在设置页关闭自动下载更新，改用 scoop update pideck 升级",
@@ -112,8 +110,7 @@
     ],
     "persist": [
         "data",
-        "dsh-home",
-        "pi-home"
+        "dsh-home"
     ],
     "checkver": {
         "github": "https://github.com/ayuayue/PiDeck"
