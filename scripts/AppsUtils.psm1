@@ -3,13 +3,13 @@ Set-StrictMode -Version 3.0
 
 <#
 .SYNOPSIS
-    Scoop 辅助模块：安全执行外部命令、UTF-8 文件输出、持久化数据挂载
+    Scoop helper module: safely run external commands, UTF-8 file output, persistent data mounting
 .DESCRIPTION
-    提供 Invoke-ExternalCommand2、Out-UTF8File、Mount-ExternalRuntimeData、Dismount-ExternalRuntimeData
-    用于 Scoop bucket 中应用的安装/卸载脚本。
+    Provides Invoke-ExternalCommand2, Out-UTF8File, Mount-ExternalRuntimeData, Dismount-ExternalRuntimeData
+    For use in install/uninstall scripts of apps in a Scoop bucket.
 #>
 
-# 辅助函数：确保日志目录存在
+# Helper function: ensure the log directory exists
 function Format-LogPath {
     param([string]$Path)
     $dir = Split-Path $Path -Parent
@@ -21,23 +21,23 @@ function Format-LogPath {
 
 <#
 .SYNOPSIS
-    执行外部命令，支持参数转义、日志记录、管理员权限等
+    Execute an external command with argument escaping, logging, administrator privileges, etc.
 .PARAMETER FilePath
-    要执行的程序路径
+    Path of the program to execute
 .PARAMETER ArgumentList
-    参数数组
+    Array of arguments
 .PARAMETER RunAs
-    使用管理员权限运行
+    Run with administrator privileges
 .PARAMETER Quiet
-    静默运行（隐藏窗口）
+    Run quietly (hidden window)
 .PARAMETER Activity
-    显示的活动消息（例如 "Installing..."）
+    Activity message to display (e.g. "Installing...")
 .PARAMETER ContinueExitCodes
-    可接受的退出码字典，用于忽略特定错误
+    Dictionary of acceptable exit codes, used to ignore specific errors
 .PARAMETER LogPath
-    输出日志文件路径
+    Path of the output log file
 .OUTPUTS
-    bool - 命令是否成功执行
+    bool - whether the command executed successfully
 #>
 function Invoke-ExternalCommand2 {
     [CmdletBinding(DefaultParameterSetName = 'Default')]
@@ -67,7 +67,7 @@ function Invoke-ExternalCommand2 {
         Write-Host "$Activity " -NoNewline
     }
 
-    # 确保日志目录存在
+    # Ensure the log directory exists
     if ($LogPath) {
         $LogPath = Format-LogPath -Path $LogPath
     }
@@ -77,7 +77,7 @@ function Invoke-ExternalCommand2 {
     $Process.StartInfo.UseShellExecute = $false
     $redirectToLogFile = $false
 
-    # 处理日志参数
+    # Handle the log parameter
     if ($LogPath) {
         if ($FilePath -match '^msiexec(.exe)?$') {
             $ArgumentList += "/lwe `"$LogPath`""
@@ -88,29 +88,29 @@ function Invoke-ExternalCommand2 {
         }
     }
 
-    # 管理员权限
+    # Administrator privileges
     if ($RunAs) {
         $Process.StartInfo.UseShellExecute = $true
         $Process.StartInfo.Verb = 'RunAs'
     }
 
-    # 静默模式
+    # Quiet mode
     if ($Quiet) {
         $Process.StartInfo.UseShellExecute = $true
         $Process.StartInfo.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
     }
 
-    # 构造参数
+    # Build the arguments
     if ($ArgumentList.Length -gt 0) {
         if ($FilePath -match '^((cmd|cscript|wscript|msiexec)(\.exe)?|.*\.(bat|cmd|js|vbs|wsf))$') {
             $Process.StartInfo.Arguments = $ArgumentList -join ' '
         } elseif ($Process.StartInfo.PSObject.Properties.Name -contains 'ArgumentList') {
-            # .NET Core / PowerShell 6+ 原生支持 ArgumentList
+            # .NET Core / PowerShell 6+ natively supports ArgumentList
             $ArgumentList | ForEach-Object { $Process.StartInfo.ArgumentList.Add($_) }
         } else {
-            # PowerShell 5.1 手动转义
+            # PowerShell 5.1 manual escaping
             $escapedArgs = $ArgumentList | ForEach-Object {
-                # 转义反斜杠和双引号（参考微软文档）
+                # Escape backslashes and double quotes (see Microsoft docs)
                 $s = $_ -replace '(\\+)"', '$1$1"'
                 $s = $s -replace '(\\+)$', '$1$1'
                 $s = $s -replace '"', '\"'
@@ -121,7 +121,7 @@ function Invoke-ExternalCommand2 {
         }
     }
 
-    # 启动进程
+    # Start the process
     try {
         [void]$Process.Start()
     } catch {
@@ -132,7 +132,7 @@ function Invoke-ExternalCommand2 {
         return $false
     }
 
-    # 异步读取输出（避免死锁）
+    # Read the output asynchronously (avoid deadlock)
     if ($redirectToLogFile) {
         $stdoutTask = $Process.StandardOutput.ReadToEndAsync()
         $stderrTask = $Process.StandardError.ReadToEndAsync()
@@ -140,7 +140,7 @@ function Invoke-ExternalCommand2 {
 
     $Process.WaitForExit()
 
-    # 写入日志
+    # Write the log
     if ($redirectToLogFile) {
         $stdout = $stdoutTask.Result
         $stderr = $stderrTask.Result
@@ -148,7 +148,7 @@ function Invoke-ExternalCommand2 {
         Out-UTF8File -FilePath $LogPath -Append -InputObject $stderr
     }
 
-    # 检查退出码
+    # Check the exit code
     if ($Process.ExitCode -ne 0) {
         if ($ContinueExitCodes -and $ContinueExitCodes.ContainsKey($Process.ExitCode)) {
             if ($Activity) {
@@ -173,15 +173,15 @@ function Invoke-ExternalCommand2 {
 
 <#
 .SYNOPSIS
-    将输入对象以 UTF-8 编码写入文件（支持流式管道）
+    Write input objects to a file as UTF-8 (supports streaming pipeline)
 .PARAMETER FilePath
-    目标文件路径
+    Path of the target file
 .PARAMETER Append
-    追加模式（默认覆盖）
+    Append mode (overwrite by default)
 .PARAMETER NoNewLine
-    不添加换行符
+    Do not add a newline
 .PARAMETER InputObject
-    要写入的内容（从管道或参数传入）
+    Content to write (from the pipeline or as a parameter)
 .EXAMPLE
     "Hello" | Out-UTF8File -FilePath .\log.txt -Append
 #>
@@ -199,7 +199,7 @@ function Out-UTF8File {
     )
 
     begin {
-        # 使用 StreamWriter 以 UTF-8 无 BOM 格式，一次打开，多次写入
+        # Use a StreamWriter with UTF-8 without BOM: open once, write many times
         $streamWriter = [System.IO.StreamWriter]::new(
             $FilePath,
             $Append,
@@ -226,14 +226,14 @@ function Out-UTF8File {
 
 <#
 .SYNOPSIS
-    挂载外部运行时数据（将应用数据目录链接到持久化目录）
+    Mount external runtime data (link the app data directory to a persistent directory)
 .PARAMETER Source
-    持久化目录路径（通常为 $persist_dir）
+    Persistent directory path (usually $persist_dir)
 .PARAMETER Target
-    应用实际使用的数据目录路径
+    Data directory path actually used by the app
 .DESCRIPTION
-    若 Source 不存在则创建；若 Target 存在则迁移其内容到 Source（若非 Junction）；
-    最后创建 Junction 链接 Target -> Source。
+    Create Source if it does not exist; if Target exists, migrate its contents to Source (unless it is a Junction);
+    finally create the Junction link Target -> Source.
 #>
 function Mount-ExternalRuntimeData {
     [CmdletBinding()]
@@ -244,44 +244,44 @@ function Mount-ExternalRuntimeData {
         [string]$Target
     )
 
-    # 确保 Source 目录存在
+    # Ensure the Source directory exists
     if (-not (Test-Path $Source)) {
         New-Item -ItemType Directory -Path $Source -Force | Out-Null
     }
 
-    # 处理已存在的 Target
+    # Handle an existing Target
     if (Test-Path $Target) {
         $item = Get-Item $Target -Force -ErrorAction SilentlyContinue
         if ($item -and $item.LinkType -eq 'Junction') {
-            # 若已是 Junction，直接删除（数据在 Source 中）
+            # If it is already a Junction, remove it directly (the data lives in Source)
             Remove-Item $Target -Force
         } else {
-            # 普通目录或文件，迁移内容到 Source，然后删除原 Target
+            # Regular directory or file: migrate its contents to Source, then remove the original Target
             try {
                 Get-ChildItem $Target -Force | Move-Item -Destination $Source -Force -ErrorAction Stop
                 Remove-Item $Target -Force -ErrorAction Stop
             } catch {
-                Write-Error "迁移 '$Target' 内容到 '$Source' 失败: $($_.Exception.Message)"
+                Write-Error "Failed to migrate contents of '$Target' to '$Source': $($_.Exception.Message)"
                 return
             }
         }
     }
 
-    # 创建 Junction 链接
+    # Create the Junction link
     try {
         New-Item -ItemType Junction -Path $Target -Target $Source -Force | Out-Null
     } catch {
-        Write-Error "创建 Junction 链接 '$Target' -> '$Source' 失败: $($_.Exception.Message)"
+        Write-Error "Failed to create Junction link '$Target' -> '$Source': $($_.Exception.Message)"
     }
 }
 
 <#
 .SYNOPSIS
-    卸载外部运行时数据（删除 Junction 链接）
+    Dismount external runtime data (remove the Junction link)
 .PARAMETER Target
-    应用数据目录路径（Junction 所在位置）
+    App data directory path (where the Junction is located)
 .DESCRIPTION
-    仅当 Target 是 Junction 时才删除，避免误删用户数据。
+    Only remove it when Target is a Junction, to avoid deleting user data by mistake.
 #>
 function Dismount-ExternalRuntimeData {
     [CmdletBinding()]
@@ -294,14 +294,14 @@ function Dismount-ExternalRuntimeData {
         $item = Get-Item $Target -Force -ErrorAction SilentlyContinue
         if ($item -and $item.LinkType -eq 'Junction') {
             Remove-Item $Target -Force
-            Write-Debug "已删除 Junction: $Target"
+            Write-Debug "Removed Junction: $Target"
         } else {
-            Write-Warning "目标 '$Target' 不是 Junction，保留原目录。"
+            Write-Warning "Target '$Target' is not a Junction; keeping the original directory."
         }
     }
 }
 
-# 导出模块成员
+# Export module members
 Export-ModuleMember -Function `
     Invoke-ExternalCommand2,
     Out-UTF8File,
