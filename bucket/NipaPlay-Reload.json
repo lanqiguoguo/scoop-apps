@@ -52,6 +52,15 @@
         "",
         "New-Item -Path $source -ItemType Junction -Value $target | Out-Null"
     ],
+    "post_uninstall": [
+        "$link = Join-Path $env:USERPROFILE 'Documents\\nipaplay'",
+        "if (Test-Path -LiteralPath $link) {",
+        "    $item = Get-Item -LiteralPath $link -Force -ErrorAction SilentlyContinue",
+        "    if ($item -and ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {",
+        "        try { [System.IO.Directory]::Delete($link, $false) } catch { Remove-Item -LiteralPath $link -Force }",
+        "    }",
+        "}"
+    ],
     "persist": "data",
     "checkver": {
         "github": "https://github.com/MCDFsteve/NipaPlay-Reload"

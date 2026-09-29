@@ -77,7 +77,7 @@
         "if (Test-Path $sourceRoot) {",
         "    $rootItem = Get-Item -LiteralPath $sourceRoot -Force",
         "    if ($rootItem.Attributes -band [IO.FileAttributes]::ReparsePoint) {",
-        "        Remove-Item -LiteralPath $sourceRoot -Force",
+        "        try { [System.IO.Directory]::Delete($sourceRoot, $false) } catch { Remove-Item -LiteralPath $sourceRoot -Force }",
         "        New-Item -Path $sourceRoot -ItemType Directory -Force | Out-Null",
         "    } elseif (-not $rootItem.PSIsContainer) {",
         "        throw \"配置根路径已存在且不是目录：$sourceRoot\"",
@@ -117,7 +117,7 @@
         "if (Test-Path $source) {",
         "    $item = Get-Item -LiteralPath $source -Force",
         "    if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {",
-        "        Remove-Item -LiteralPath $source -Force",
+        "        try { [System.IO.Directory]::Delete($source, $false) } catch { Remove-Item -LiteralPath $source -Force }",
         "    }",
         "}"
     ],

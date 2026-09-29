@@ -64,6 +64,22 @@
         "& $createJunction (Join-Path $appData 'plugins') 'plugins'",
         "& $createJunction (Join-Path $appData 'clipboard') 'clipboard'"
     ],
+    "post_uninstall": [
+        "$appData = Join-Path $env:APPDATA 'ZTools'",
+        "$links = @(",
+        "    (Join-Path $appData 'lmdb'),",
+        "    (Join-Path $appData 'plugins'),",
+        "    (Join-Path $appData 'clipboard')",
+        ")",
+        "foreach ($link in $links) {",
+        "    if (Test-Path -LiteralPath $link) {",
+        "        $item = Get-Item -LiteralPath $link -Force -ErrorAction SilentlyContinue",
+        "        if ($item -and ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {",
+        "            try { [System.IO.Directory]::Delete($link, $false) } catch { Remove-Item -LiteralPath $link -Force }",
+        "        }",
+        "    }",
+        "}"
+    ],
     "persist": [
         "lmdb",
         "plugins",

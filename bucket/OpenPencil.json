@@ -65,6 +65,20 @@
         "& $createJunction (Join-Path $env:APPDATA 'openpencil') 'data'",
         "& $createJunction (Join-Path $env:USERPROFILE '.openpencil') 'dotopenpencil'"
     ],
+    "post_uninstall": [
+        "$links = @(",
+        "    (Join-Path $env:APPDATA 'openpencil'),",
+        "    (Join-Path $env:USERPROFILE '.openpencil')",
+        ")",
+        "foreach ($link in $links) {",
+        "    if (Test-Path -LiteralPath $link) {",
+        "        $item = Get-Item -LiteralPath $link -Force -ErrorAction SilentlyContinue",
+        "        if ($item -and ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {",
+        "            try { [System.IO.Directory]::Delete($link, $false) } catch { Remove-Item -LiteralPath $link -Force }",
+        "        }",
+        "    }",
+        "}"
+    ],
     "persist": [
         "data",
         "dotopenpencil"

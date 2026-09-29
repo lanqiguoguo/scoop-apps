@@ -32,7 +32,7 @@
       "if (Test-Path -LiteralPath $target) {",
       "    $item = Get-Item -LiteralPath $target -Force -ErrorAction SilentlyContinue",
       "    if ($item -and ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {",
-      "        Remove-Item -LiteralPath $target -Force",
+      "        try { [System.IO.Directory]::Delete($target, $false) } catch { Remove-Item -LiteralPath $target -Force }",
       "    }",
       "}"
     ]

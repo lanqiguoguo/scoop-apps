@@ -106,7 +106,7 @@
         "if (Test-Path $appSupport) {",
         "    $item = Get-Item -LiteralPath $appSupport -Force",
         "    if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {",
-        "        Remove-Item -LiteralPath $appSupport -Force",
+        "        try { [System.IO.Directory]::Delete($appSupport, $false) } catch { Remove-Item -LiteralPath $appSupport -Force }",
         "    }",
         "}"
     ],

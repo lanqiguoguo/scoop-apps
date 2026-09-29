@@ -55,7 +55,7 @@
         "foreach ($path in $paths) {",
         "    if (Test-Path $path) {",
         "        $item = Get-Item -LiteralPath $path -Force",
-        "        if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { Remove-Item -LiteralPath $path -Force }",
+        "        if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) { try { [System.IO.Directory]::Delete($path, $false) } catch { Remove-Item -LiteralPath $path -Force } }",
         "    }",
         "}"
     ],

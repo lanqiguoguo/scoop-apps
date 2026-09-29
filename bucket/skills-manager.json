@@ -84,7 +84,7 @@
         "    $expected = [IO.Path]::GetFullPath($target).TrimEnd('\\')",
         "    $actual = @($item.Target) | Select-Object -First 1",
         "    if ($actual -and [IO.Path]::GetFullPath($actual).TrimEnd('\\') -ieq $expected) {",
-        "        Remove-Item -LiteralPath $source -Force",
+        "        try { [System.IO.Directory]::Delete($source, $false) } catch { Remove-Item -LiteralPath $source -Force }",
         "    }",
         "}",
         "",

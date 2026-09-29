@@ -61,6 +61,20 @@
         "& $createJunction (Join-Path $env:LOCALAPPDATA 'com.zhukunpenglinyutong.ccgui') 'data'",
         "& $createJunction (Join-Path $env:USERPROFILE '.ccgui') 'dotccgui'"
     ],
+    "post_uninstall": [
+        "$links = @(",
+        "    (Join-Path $env:LOCALAPPDATA 'com.zhukunpenglinyutong.ccgui'),",
+        "    (Join-Path $env:USERPROFILE '.ccgui')",
+        ")",
+        "foreach ($link in $links) {",
+        "    if (Test-Path -LiteralPath $link) {",
+        "        $item = Get-Item -LiteralPath $link -Force -ErrorAction SilentlyContinue",
+        "        if ($item -and ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {",
+        "            try { [System.IO.Directory]::Delete($link, $false) } catch { Remove-Item -LiteralPath $link -Force }",
+        "        }",
+        "    }",
+        "}"
+    ],
     "persist": [
         "data",
         "dotccgui"

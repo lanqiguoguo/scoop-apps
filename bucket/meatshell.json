@@ -52,7 +52,7 @@
             "if (Test-Path $target) {",
             "    $item = Get-Item -LiteralPath $target -Force",
             "    if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {",
-            "        Remove-Item -LiteralPath $target -Force",
+            "        try { [System.IO.Directory]::Delete($target, $false) } catch { Remove-Item -LiteralPath $target -Force }",
             "    }",
             "}"
         ]

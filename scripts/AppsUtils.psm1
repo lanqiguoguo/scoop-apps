@@ -19,6 +19,17 @@ function Format-LogPath {
     return $Path
 }
 
+# Remove a junction/symlink itself without touching the linked data
+# (Windows PowerShell 5.1 Remove-Item can throw a NullReferenceException on junctions)
+function Remove-LinkPath {
+    param([Parameter(Mandatory = $true)][string]$Path)
+    try {
+        [System.IO.Directory]::Delete($Path, $false)
+    } catch {
+        Remove-Item -LiteralPath $Path -Force
+    }
+}
+
 <#
 .SYNOPSIS
     Execute an external command with argument escaping, logging, administrator privileges, etc.
@@ -232,8 +243,10 @@ function Out-UTF8File {
 .PARAMETER Target
     Data directory path actually used by the app
 .DESCRIPTION
-    Create Source if it does not exist; if Target exists, migrate its contents to Source (unless it is a Junction);
-    finally create the Junction link Target -> Source.
+    Create Source if it does not exist. If Target exists: a Junction is unlinked; a regular directory is copied to
+    Source with robocopy and then renamed to "<Target>.backup-<timestamp>" (an empty directory is removed without a
+    backup); a regular file is copied to Source and then renamed to "<Target>.backup-<timestamp>". On migration
+    failure the original Target is kept as-is and no link is created. Finally create the Junction link Target -> Source.
 #>
 function Mount-ExternalRuntimeData {
     [CmdletBinding()]
@@ -251,18 +264,49 @@ function Mount-ExternalRuntimeData {
 
     # Handle an existing Target
     if (Test-Path $Target) {
-        $item = Get-Item $Target -Force -ErrorAction SilentlyContinue
+        $item = Get-Item -LiteralPath $Target -Force -ErrorAction SilentlyContinue
         if ($item -and $item.LinkType -eq 'Junction') {
-            # If it is already a Junction, remove it directly (the data lives in Source)
-            Remove-Item $Target -Force
-        } else {
-            # Regular directory or file: migrate its contents to Source, then remove the original Target
+            # If it is already a Junction, remove the link itself (the data lives in Source)
+            Remove-LinkPath -Path $Target
+        } elseif ($item -and -not $item.PSIsContainer) {
+            # Regular file: copy it to Source first, then back up the original file
             try {
-                Get-ChildItem $Target -Force | Move-Item -Destination $Source -Force -ErrorAction Stop
-                Remove-Item $Target -Force -ErrorAction Stop
+                Copy-Item -LiteralPath $Target -Destination $Source -Force -ErrorAction Stop
             } catch {
-                Write-Error "Failed to migrate contents of '$Target' to '$Source': $($_.Exception.Message)"
+                Write-Error "Failed to copy file '$Target' to '$Source': $($_.Exception.Message)"
                 return
+            }
+            $backup = "$Target.backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+            try {
+                Move-Item -LiteralPath $Target -Destination $backup -Force -ErrorAction Stop
+            } catch {
+                Write-Error "Failed to back up the original file '$Target' to '$backup': $($_.Exception.Message)"
+                return
+            }
+        } else {
+            # Regular directory: copy its contents to Source first, then back up the original directory
+            $children = @(Get-ChildItem -LiteralPath $Target -Force -ErrorAction SilentlyContinue)
+            if ($children.Count -eq 0) {
+                # Empty directory: remove it directly, no backup is created
+                try {
+                    Remove-Item -LiteralPath $Target -Force -ErrorAction Stop
+                } catch {
+                    Write-Error "Failed to remove the empty directory '$Target': $($_.Exception.Message)"
+                    return
+                }
+            } else {
+                robocopy $Target $Source /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
+                if ($LASTEXITCODE -gt 7) {
+                    Write-Error "Failed to migrate contents of '$Target' to '$Source' (robocopy exit code $LASTEXITCODE); keeping the original directory as-is and not creating the link."
+                    return
+                }
+                $backup = "$Target.backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+                try {
+                    Move-Item -LiteralPath $Target -Destination $backup -Force -ErrorAction Stop
+                } catch {
+                    Write-Error "Failed to back up the original directory '$Target' to '$backup': $($_.Exception.Message)"
+                    return
+                }
             }
         }
     }
@@ -293,7 +337,7 @@ function Dismount-ExternalRuntimeData {
     if (Test-Path $Target) {
         $item = Get-Item $Target -Force -ErrorAction SilentlyContinue
         if ($item -and $item.LinkType -eq 'Junction') {
-            Remove-Item $Target -Force
+            Remove-LinkPath -Path $Target
             Write-Debug "Removed Junction: $Target"
         } else {
             Write-Warning "Target '$Target' is not a Junction; keeping the original directory."

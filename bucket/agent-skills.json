@@ -61,6 +61,20 @@
         "& $createJunction (Join-Path $env:USERPROFILE '.skills-app') 'dot-skills-app'",
         "& $createJunction (Join-Path $env:LOCALAPPDATA 'skills-app') 'cache'"
     ],
+    "post_uninstall": [
+        "$links = @(",
+        "    (Join-Path $env:USERPROFILE '.skills-app'),",
+        "    (Join-Path $env:LOCALAPPDATA 'skills-app')",
+        ")",
+        "foreach ($link in $links) {",
+        "    if (Test-Path -LiteralPath $link) {",
+        "        $item = Get-Item -LiteralPath $link -Force -ErrorAction SilentlyContinue",
+        "        if ($item -and ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {",
+        "            try { [System.IO.Directory]::Delete($link, $false) } catch { Remove-Item -LiteralPath $link -Force }",
+        "        }",
+        "    }",
+        "}"
+    ],
     "persist": [
         "dot-skills-app",
         "cache"

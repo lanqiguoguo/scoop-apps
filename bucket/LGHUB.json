@@ -1,8 +1,12 @@
 {
     "version": "1.0",
-    "description": "Logitech G Hub for moouse.",
+    "description": "Logitech G Hub for mouse.",
     "homepage": "https://www.logitechg.com/de-de",
     "license": "Freeware",
+    "notes": [
+        "Bootstrap manifest for the official Logitech G HUB online installer only.",
+        "It has no checkver or autoupdate, so Scoop will not update it; update the app through the official installer."
+    ],
     "url": "https://download01.logi.com/web/ftp/pub/techsupport/gaming/lghub_installer.exe",
     "bin": "lghub_installer.exe"
 }
