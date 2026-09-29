@@ -51,7 +51,7 @@
     ]
   ],
   "checkver": {
-    "github": "https://api.github.com/repos/liuchuancong/pure_live/releases",
+    "url": "https://api.github.com/repos/liuchuancong/pure_live/releases",
     "jp": "$[0].assets[*].browser_download_url",
     "regex": "/releases/download/v([\\d.]+)/PureLive-([\\d.]+)%2B([\\d]+)-windows",
     "replace": "${1}.${3}"

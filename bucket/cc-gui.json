@@ -85,7 +85,7 @@
     "autoupdate": {
         "architecture": {
             "64bit": {
-                "url": "https://gh-proxy.org/https://github.com/zhukunpenglinyutong/desktop-cc-gui/releases/download/v$version/ccgui_$version_x64-setup.exe#/dl.7z"
+                "url": "https://gh-proxy.org/https://github.com/zhukunpenglinyutong/desktop-cc-gui/releases/download/v$version/CC.GUI_$version_x64-setup.exe#/dl.7z"
             }
         }
     }
