@@ -68,8 +68,7 @@
     ],
     "persist": "data",
     "checkver": {
-        "github": "https://github.com/hsqbyte/hikit",
-        "regex": "v([\\d.]+)"
+        "github": "https://github.com/hsqbyte/hikit"
     },
     "autoupdate": {
         "url": "https://gh-proxy.org/https://github.com/hsqbyte/hikit/releases/download/v$version/HiKit-v$version-windows-amd64.zip"
