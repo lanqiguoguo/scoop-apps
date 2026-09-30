@@ -1,5 +1,5 @@
 {
-    "version": "0.106.0",
+    "version": "0.107.0",
     "description": "Mobile-first AI workstation for running coding agents from a web interface",
     "homepage": "https://github.com/clawbench-dev/clawbench",
     "license": "MIT",
@@ -11,8 +11,8 @@
     ],
     "architecture": {
         "64bit": {
-            "url": "https://gh-proxy.org/https://github.com/clawbench-dev/clawbench/releases/download/v0.106.0/clawbench-windows-amd64-v0.106.0.zip",
-            "hash": "88556b6ccdf0ca9069ec8dfa40f8c904548398ab7b06b4a27454287821aa1d6d"
+            "url": "https://gh-proxy.org/https://github.com/clawbench-dev/clawbench/releases/download/v0.107.0/clawbench-windows-amd64-v0.107.0.zip",
+            "hash": "4538c1d12e8625293aed4f78005dce1b0e8acc061a5b2776087426b11d73a5a5"
         }
     },
     "extract_dir": "clawbench",
