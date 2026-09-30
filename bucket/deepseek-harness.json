@@ -1,0 +1,141 @@
+{
+    "version": "0.2.0-rc.2",
+    "description": "DeepSeek Harness desktop app: open-source agent harness with a bundled DSH runtime and an external plugin system",
+    "homepage": "https://www.deepseek.com/harness/",
+    "license": "MIT",
+    "notes": [
+        "DeepSeek Harness 是 DeepSeek 开源的 Agent Harness 桌面应用（预览版），内置 DSH runtime 与插件体系",
+        "数据目录：",
+        "  - %USERPROFILE%\\.dsh：DSH_HOME，内置 DSH runtime 的默认主目录（凭据 .env、AGENTS.md、.agent-presets、已安装插件等）",
+        "      已 Junction 到 persist\\dsh-home；仅在目录不存在或为空时接管，已单独安装 dsh CLI、或该目录已由 pideck 接管时不会搬动",
+        "  - %APPDATA%\\@deepseek-ai\\dsh-desktop：桌面壳的 Electron userData（窗口状态、设置、更新缓存）",
+        "      已 Junction 到 persist\\AppData；若该目录已存在，会先整体搬到 persist 并在原位置留下 .backup-<时间戳> 备份",
+        "应用首次启动会自行注册 dsh:// 协议（HKCU\\Software\\Classes\\dsh），卸载时本包会清理该注册",
+        "应用自带自动更新（官方 feed）：由 Scoop 管理时建议在应用内关闭自动更新，改用 scoop update deepseek-harness 升级",
+        "卸载只删除 Junction 链接与 dsh:// 协议注册，persist 数据保留（scoop uninstall -p 才会删除 persist）"
+    ],
+    "architecture": {
+        "64bit": {
+            "url": "https://download.deepseek.com/dsh-desk/bin/win-x64/deepseek-harness-0.2.0-rc.2-win-x64.exe#/dl.7z",
+            "hash": "d61cd8882f8b8a1251144320493ad27920d15139503eba2465b9579eee720cfc"
+        }
+    },
+    "pre_install": [
+        "Expand-7zipArchive \"$dir\\`$PLUGINSDIR\\app-64.7z\" \"$dir\" -Removal",
+        "Remove-Item \"$dir\\`$*\", \"$dir\\Uninstall*\" -Force -Recurse -ErrorAction SilentlyContinue"
+    ],
+    "bin": "DeepSeek Harness.exe",
+    "shortcuts": [
+        [
+            "DeepSeek Harness.exe",
+            "DeepSeek Harness"
+        ]
+    ],
+    "post_install": [
+        "ensure (Join-Path $persist_dir 'AppData')",
+        "ensure (Join-Path $persist_dir 'dsh-home')",
+        "",
+        "$linkAppData = {",
+        "    param([string]$Source, [string]$Target)",
+        "    if (Test-Path -LiteralPath $Source) {",
+        "        $item = Get-Item -LiteralPath $Source -Force",
+        "        if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {",
+        "            Write-Host \"Already linked, leaving it as is: $Source\"",
+        "            return",
+        "        }",
+        "        if (-not $item.PSIsContainer) { throw \"Path exists and is not a directory: $Source\" }",
+        "        & robocopy $Source $Target /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null",
+        "        if ($LASTEXITCODE -gt 7) {",
+        "            Write-Host \"Copy to persist failed, keeping the existing dir: $Source\"",
+        "            return",
+        "        }",
+        "        $backup = \"$Source.backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')\"",
+        "        try {",
+        "            Move-Item -LiteralPath $Source -Destination $backup -Force",
+        "            Write-Host \"Moved the previous data dir to: $backup\"",
+        "        } catch {",
+        "            Write-Host \"Cannot rename the existing dir, skipped linking: $Source\"",
+        "            return",
+        "        }",
+        "    }",
+        "    New-Item -Path $Source -ItemType Junction -Value $Target | Out-Null",
+        "    Write-Host \"Linked app data dir to persist: $Source\"",
+        "}",
+        "",
+        "$linkIfVacant = {",
+        "    param([string]$Source, [string]$Target, [string]$Label)",
+        "    if (Test-Path -LiteralPath $Source) {",
+        "        $item = Get-Item -LiteralPath $Source -Force",
+        "        if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {",
+        "            Write-Host \"$Label is already linked, leaving it as is: $Source\"",
+        "            return",
+        "        }",
+        "        if (@(Get-ChildItem -LiteralPath $Source -Force).Count -gt 0) {",
+        "            Write-Host \"$Label already holds data, it stays outside persist: $Source\"",
+        "            return",
+        "        }",
+        "        Remove-Item -LiteralPath $Source -Force -Recurse",
+        "    }",
+        "    New-Item -Path $Source -ItemType Junction -Value $Target | Out-Null",
+        "    Write-Host \"Linked $Label to persist: $Source\"",
+        "}",
+        "",
+        "& $linkAppData (Join-Path $env:APPDATA '@deepseek-ai\\dsh-desktop') (Join-Path $persist_dir 'AppData')",
+        "& $linkIfVacant (Join-Path $env:USERPROFILE '.dsh') (Join-Path $persist_dir 'dsh-home') 'DSH home (.dsh)'"
+    ],
+    "persist": [
+        "AppData",
+        "dsh-home"
+    ],
+    "post_uninstall": [
+        "$removeLink = {",
+        "    param([string]$Path)",
+        "    if (Test-Path -LiteralPath $Path) {",
+        "        $item = Get-Item -LiteralPath $Path -Force",
+        "        if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {",
+        "            # Remove-Item -Force can throw a NullReferenceException on junctions in PS 5.1",
+        "            try {",
+        "                [System.IO.Directory]::Delete($Path)",
+        "            } catch {",
+        "                Remove-Item -LiteralPath $Path -Force",
+        "            }",
+        "            Write-Host \"Removed link, data is kept in persist: $Path\"",
+        "        }",
+        "    }",
+        "}",
+        "",
+        "& $removeLink (Join-Path $env:APPDATA '@deepseek-ai\\dsh-desktop')",
+        "",
+        "# .dsh may be shared with the standalone dsh CLI or pideck:",
+        "# only remove the link when it points at this package's persist dir",
+        "$dshLink = Join-Path $env:USERPROFILE '.dsh'",
+        "if (Test-Path -LiteralPath $dshLink) {",
+        "    $item = Get-Item -LiteralPath $dshLink -Force",
+        "    if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {",
+        "        $target = [string]$item.Target",
+        "        if ($target -ieq (Join-Path $persist_dir 'dsh-home')) {",
+        "            & $removeLink $dshLink",
+        "        } else {",
+        "            Write-Host \".dsh links elsewhere, leaving it alone: $target\"",
+        "        }",
+        "    }",
+        "}",
+        "",
+        "# the app registers the dsh:// protocol itself on first launch",
+        "Remove-Item 'HKCU:\\SOFTWARE\\Classes\\dsh' -Recurse -Force -ErrorAction SilentlyContinue"
+    ],
+    "checkver": {
+        "url": "https://download.deepseek.com/dsh-desk/feeds/win-x64/nightly.yml",
+        "regex": "(?m)^version:\\s*(\\S+)"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://download.deepseek.com/dsh-desk/bin/win-x64/deepseek-harness-$version-win-x64.exe#/dl.7z"
+            }
+        },
+        "hash": {
+            "mode": "download"
+        }
+    }
+}
