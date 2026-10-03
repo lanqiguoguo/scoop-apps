@@ -19,39 +19,39 @@ scoop install scoop-apps/<应用名>
 
 多数应用的数据目录与持久化方式都写在 manifest 的 `notes` 里（部分 CLI 工具型清单没有独立数据目录，未写 notes），可用 `scoop info <应用名>` 查看。
 
-## 应用列表（114 个）
+## 应用列表（116 个）
 
 | 应用 | 应用 | 应用 | 应用 |
 | --- | --- | --- | --- |
-| 115-plus-desktop | dbx | moor | relaydesk |
-| agent-skills | Dev-Janitor | Moraya | res-downloader |
-| ai-cli-complete-notify | DevTool-Manager | motrix-next | RogueCleaner |
-| ai-toolbox | DnsTools | Mouser | SecondDesk |
-| aio-coding-hub | Game-Cheats-Manager | MShell | shelf |
-| AIO-Hub | geekez-browser | MusicTag | skills-manager |
-| AionUi | Github-Store | netcatty | SmartHostsTool |
-| AliasGUI | GithubStarsManager | Nexus_Terminal | snippai |
-| Ani | go-music-dl | nexus-terminal-rust | SoNovel |
-| ant-browser | guan-manager | NipaPlay-Reload | sparkle |
-| aramgg_client | hikit | nwinfo | sshping |
-| bbmusic | imfile-desktop | nyaterm | SteamCommunity-302 |
-| belfry-desktop | karing | OpenPencil | sTerminal |
-| buildby | kdeconnect | oxideterm | Tai |
-| c_cleaner_plus | KeymouseGo | pebble | tbtool |
-| cc-gui | keyStats | pebrel | tdl |
-| cc-sessions-viewer | kikoplay | pi-desktop | tty7 |
-| cc-switch | killerpdf | PicList | tubatool |
-| ccg-gateway | LGHUB | pideck | Tuboshu |
-| chromix | linuxdo-accelerator | PiliNara | turbo-browser |
-| clawbench | LiteMonitor | PixPin | Unihub |
-| cloaksession | Lumina-Note | Pot | UotanToolboxNT |
-| cockpit-tools | mangodisk | powershell | UsbEAm-Hosts-Editor |
-| CodeConductor | meatshell | PromptOptimizer | winterm2 |
-| CodeSwitch | MemCleaner | pure_live | wsl-dashboard |
-| CodeSwitchR | MemoryCleanr | QuantumTV | XTerminal |
-| codux | MicYou | Quick-Launcher | ZTools |
-| copaw | milkup | QuickCut |  |
-| CursorLens | mini-term | ReadAny |  |
+| 115-plus-desktop | dbx | milkup | QuickCut |
+| agent-skills | deepseek-harness | mini-term | ReadAny |
+| ai-cli-complete-notify | Dev-Janitor | moor | relaydesk |
+| ai-toolbox | DevTool-Manager | Moraya | res-downloader |
+| aio-coding-hub | DnsTools | motrix-next | RogueCleaner |
+| AIO-Hub | Game-Cheats-Manager | Mouser | SecondDesk |
+| AionUi | geekez-browser | MShell | shelf |
+| AliasGUI | Github-Store | MusicTag | skills-manager |
+| Ani | GithubStarsManager | netcatty | SmartHostsTool |
+| ant-browser | go-music-dl | Nexus_Terminal | snippai |
+| aramgg_client | guan-manager | nexus-terminal-rust | SoNovel |
+| bbmusic | hikit | NipaPlay-Reload | sparkle |
+| belfry-desktop | imfile-desktop | nwinfo | sshping |
+| buildby | karing | nyaterm | SteamCommunity-302 |
+| c_cleaner_plus | kdeconnect | OpenPencil | sTerminal |
+| cc-gui | KeymouseGo | oxideterm | Tai |
+| cc-sessions-viewer | keyStats | pebble | tbtool |
+| cc-switch | kikoplay | pebrel | tdl |
+| ccg-gateway | killerpdf | pi-desktop | tty7 |
+| chromix | kimi-code-desktop | PicList | tubatool |
+| clawbench | LGHUB | pideck | Tuboshu |
+| cloaksession | linuxdo-accelerator | PiliNara | turbo-browser |
+| cockpit-tools | LiteMonitor | PixPin | Unihub |
+| CodeConductor | Lumina-Note | Pot | UotanToolboxNT |
+| CodeSwitch | mangodisk | powershell | UsbEAm-Hosts-Editor |
+| CodeSwitchR | meatshell | PromptOptimizer | winterm2 |
+| codux | MemCleaner | pure_live | wsl-dashboard |
+| copaw | MemoryCleanr | QuantumTV | XTerminal |
+| CursorLens | MicYou | Quick-Launcher | ZTools |
 
 ## 数据与使用提示
 
