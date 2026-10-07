@@ -1,5 +1,5 @@
 {
-    "version": "1.3.65",
+    "version": "1.3.66",
     "description": "通用 AI IDE 账号管理工具",
     "homepage": "https://github.com/jlcodes99/cockpit-tools/",
     "license": "Unknown",
@@ -11,8 +11,8 @@
         "卸载本包会移除该环境变量，persist 中的数据会保留，需要时可手动复制回 %USERPROFILE%\\.antigravity_cockpit\\",
         "升级或卸载前请先退出 Cockpit Tools，避免数据文件被占用"
     ],
-    "url": "https://gh-proxy.org/https://github.com/jlcodes99/cockpit-tools/releases/download/v1.3.65/Cockpit.Tools_1.3.65_x64-setup.exe#/dl.7z",
-    "hash": "76e74a82bc9b6708e2ce34e9f02caa888262b5cd2ccb972fed526e9b669906f8",
+    "url": "https://gh-proxy.org/https://github.com/jlcodes99/cockpit-tools/releases/download/v1.3.66/Cockpit.Tools_1.3.66_x64-setup.exe#/dl.7z",
+    "hash": "7f9186383d431ac17b5f3a18ea7af4848c2c249f3ff6017207261f61123c4cc6",
     "shortcuts": [
         [
             "cockpit-tools.exe",
