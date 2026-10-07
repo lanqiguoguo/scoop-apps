@@ -1,12 +1,12 @@
 {
-    "version": "0.7.9",
+    "version": "0.8.0",
     "description": "Desktop workbench for managing pi and DSH agent sessions in local project directories",
     "homepage": "https://github.com/ayuayue/PiDeck",
     "license": "MIT",
     "architecture": {
         "64bit": {
-            "url": "https://gh-proxy.org/https://github.com/ayuayue/PiDeck/releases/download/v0.7.9/PiDeck-0.7.9-win.zip",
-            "hash": "14f6562f44cfd34ff1aca7c417bda8e7bc8e1e3a01385fb7d91172af9f25bce6"
+            "url": "https://gh-proxy.org/https://github.com/ayuayue/PiDeck/releases/download/v0.8.0/PiDeck-0.8.0-win.zip",
+            "hash": "fa5a2879b01953067d71b5fd3f33307e92a799f9314fc9cc3451745abe70b870"
         }
     },
     "bin": "PiDeck.exe",
