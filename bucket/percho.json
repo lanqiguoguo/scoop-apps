@@ -1,0 +1,114 @@
+{
+    "version": "0.6.2",
+    "description": "Desktop GUI for the Pi coding agent with multi-session chat, visual tool approvals and custom themes",
+    "homepage": "https://github.com/Jaxton07/percho",
+    "license": "MIT",
+    "architecture": {
+        "64bit": {
+            "url": "https://gh-proxy.org/https://github.com/Jaxton07/percho/releases/download/v0.6.2/percho-windows-x64.zip",
+            "hash": "203919bbe43b7293afca8cd78dd29490847814c1b254cca791cf0083bad53684"
+        }
+    },
+    "bin": "Percho.exe",
+    "shortcuts": [
+        [
+            "Percho.exe",
+            "Percho"
+        ]
+    ],
+    "post_install": [
+        "$dataDir = Join-Path $persist_dir 'data'",
+        "$homeDir = Join-Path $persist_dir 'percho-home'",
+        "ensure $dataDir",
+        "ensure $homeDir",
+        "",
+        "# user data root: app.asar carries no productName, so the packaged app name is the scoped",
+        "# package name @percho/desktop and Electron builds its userData dir from that name",
+        "$userData = Join-Path (Join-Path $env:APPDATA '@percho') 'desktop'",
+        "ensure (Split-Path $userData)",
+        "",
+        "# link an existing plain data dir into persist: copy it over, then keep a timestamped backup",
+        "$linkDir = {",
+        "    param([string]$Source, [string]$Target, [bool]$SkipLinks)",
+        "    if (Test-Path $Source) {",
+        "        $item = Get-Item -LiteralPath $Source -Force",
+        "        if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {",
+        "            Write-Host ('Already linked, leaving it as is: ' + $Source)",
+        "            return",
+        "        }",
+        "        if (-not $item.PSIsContainer) { throw ('Path exists and is not a directory: ' + $Source) }",
+        "        $rcArgs = @($Source, $Target, '/E', '/R:1', '/W:1', '/NFL', '/NDL', '/NJH', '/NJS', '/NP')",
+        "        # /XJ keeps links inside the tree (the app's own ~/.percho/ui-plugins link) from being",
+        "        # copied as plain files; the app recreates that link on its next start",
+        "        if ($SkipLinks) { $rcArgs += '/XJ' }",
+        "        & robocopy @rcArgs | Out-Null",
+        "        if ($LASTEXITCODE -gt 7) {",
+        "            Write-Host ('Copy to persist failed, keeping the existing dir: ' + $Source)",
+        "            return",
+        "        }",
+        "        $backup = $Source + '.backup-' + (Get-Date -Format 'yyyyMMdd-HHmmss')",
+        "        try {",
+        "            Move-Item -LiteralPath $Source -Destination $backup -Force",
+        "            Write-Host ('Moved the previous data dir to: ' + $backup)",
+        "        } catch {",
+        "            Write-Host ('Cannot rename the existing dir, skipped linking: ' + $Source)",
+        "            return",
+        "        }",
+        "    }",
+        "    New-Item -Path $Source -ItemType Junction -Value $Target | Out-Null",
+        "    Write-Host ('Linked app data dir to persist: ' + $Source)",
+        "}",
+        "",
+        "& $linkDir $userData $dataDir $false",
+        "& $linkDir (Join-Path $env:USERPROFILE '.percho') $homeDir $true"
+    ],
+    "post_uninstall": [
+        "$dataLink = Join-Path (Join-Path $env:APPDATA '@percho') 'desktop'",
+        "$homeLink = Join-Path $env:USERPROFILE '.percho'",
+        "foreach ($link in @($dataLink, $homeLink)) {",
+        "    if (Test-Path $link) {",
+        "        $item = Get-Item -LiteralPath $link -Force",
+        "        if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {",
+        "            # Remove-Item -Force can throw a NullReferenceException on junctions in PS 5.1",
+        "            try {",
+        "                [System.IO.Directory]::Delete($link)",
+        "            } catch {",
+        "                Remove-Item -LiteralPath $link -Force",
+        "            }",
+        "            Write-Host ('Removed link, data is kept in persist: ' + $link)",
+        "        }",
+        "    }",
+        "}"
+    ],
+    "notes": [
+        "Percho 是 Pi coding agent（@earendil-works/pi-coding-agent）的桌面 GUI（Electron + React），内嵌官方 Pi SDK，不需要另外安装 pi CLI",
+        "数据目录（依据 0.6.2 发布包核对其 asar 内 package.json 与仓库源码）：",
+        "  - %APPDATA%\\@percho\\desktop：应用自身的 userData。打包后的应用名是 npm 作用域名 @percho/desktop（asar 内没有 productName），Electron 因此用这个名字建目录；本包已将它 Junction 到 persist\\data",
+        "      其下有 ui-plugins（UI 插件真实目录，含 SPEC.md、percho-ui.d.ts、_examples）、ui-state.json（界面偏好）、ui-plugins.json、backgrounds（自定义背景图）、logs（运行日志）、lan-observer.json 与 lan-audit.jsonl（局域网伴侣），以及 Electron 自己的 Local Storage 等",
+        "  - %USERPROFILE%\\.percho：应用自己的目录，本包已整体 Junction 到 persist\\percho-home；其下 daily 是「日常空间」会话的固定工作目录（存放 agent 生成的文件）",
+        "      应用每次启动还会自建 %USERPROFILE%\\.percho\\ui-plugins 链接指向 userData\\ui-plugins（给 agent 一个稳定路径），该链接由应用自己维护，本包不代管（userData 已 Junction 到 persist，应用启动时会把这链接判为「指向其他位置」并记一条告警日志，功能不受影响）",
+        "  - %USERPROFILE%\\.pi\\agent：与单独安装的 pi CLI 共用的目录（sessions、auth.json、models.json、settings.json、permissions.json、trust.json、workspaces.json、agents、npm 等），Percho 的会话与登录凭证都在这里。本包不接管也不做 Junction：它不属于 Percho 私有（pi CLI 也用），且位于用户目录下，卸载不会删除；若要把它也放进 persist，需自行建立 Junction",
+        "首次安装时上述两个目录若已存在，会先整体搬到 persist 并在原位置留下 .backup-<时间戳> 备份；搬 .percho 时跳过应用自建的 ui-plugins 链接（由应用在下次启动时重建）",
+        "卸载只删除上述 Junction 链接，persist 中的数据保留",
+        "Percho 自带自动更新（electron-updater）：默认只检查不下载（启动 10 秒后与之后每 2 小时各查一次），要用户点顶栏按钮才下载，下载后完全退出应用会自动升级",
+        "用 Scoop 管理时建议不要点应用内的更新下载/重启按钮，改用 scoop update percho：应用内更新走的是 electron-builder 的 NSIS 安装包，会装到它自己的默认目录（通常为 %LOCALAPPDATA%\\Programs\\Percho），与 Scoop 这份并存",
+        "本包附带 percho 命令（指向 Percho.exe）；它是 GUI 程序，从命令行运行只会打开窗口"
+    ],
+    "persist": [
+        "data",
+        "percho-home"
+    ],
+    "checkver": {
+        "github": "https://github.com/Jaxton07/percho"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://gh-proxy.org/https://github.com/Jaxton07/percho/releases/download/v$version/percho-windows-x64.zip"
+            }
+        },
+        "hash": {
+            "mode": "download"
+        }
+    }
+}
