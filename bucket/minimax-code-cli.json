@@ -1,0 +1,89 @@
+{
+    "version": "0.6.5",
+    "description": "MiniMax Code CLI (mcode): MiniMax's terminal coding agent; installs from the npm package @minimax-ai/code and shares the ~/.minimax data root with the MiniMax Code desktop app",
+    "homepage": "https://agent.minimax.cn/docs/cli/quick-start",
+    "license": "MIT",
+    "notes": [
+        "MiniMax Code CLI（命令名 mcode）是 MiniMax 的终端编程 Agent，命令有 mcode（TUI/交互）与 mcode-tools",
+        "本包从 npm 包 @minimax-ai/code 安装，依赖 Scoop 的 nodejs（需要 Node 22.19+ 的 22.x，或 24/25/26）；npm 依赖交给本机 npm 拉取，国内可先配置 npm 镜像加速",
+        "安装时会按本机 Node 的 ABI 从 MiniMax CDN 下载官方预编译的 better-sqlite3 原生绑定（SHA-256 与官方 native 清单核对后解压，不做本地编译）",
+        "数据目录：%USERPROFILE%\\.minimax（config.yaml、Session、日志、Plugin、Skill 等运行数据），与 MiniMax Code 桌面端共用",
+        "      按「共用目录不接管」的原则：本包不建 Junction、也不设置 MINIMAX_DATA_DIR，保持默认位置；卸载本包不影响桌面端（反之亦然）",
+        "升级请用 scoop update minimax-code-cli；CLI 自带的 mcode update 面向官方安装器布局，在 Scoop 安装下不建议使用",
+        "所有文件都在 Scoop 自己的目录里，不使用 npm 的全局目录，也不需要管理员权限"
+    ],
+    "depends": "nodejs",
+    "url": "https://registry.npmjs.org/@minimax-ai/code/-/code-0.6.5.tgz#/dl.tgz",
+    "hash": "de35e828f47a29426f169be16fece70eaf455b222d61d044d2e134e5759f1217",
+    "extract_dir": "package",
+    "installer": {
+        "script": [
+            "Write-Host 'Installing npm dependencies (fetched from your configured npm registry)...'",
+            "$npm = $null",
+            "foreach ($candidate in @('npm.cmd', 'npm.exe', 'npm')) {",
+            "    $found = Get-Command $candidate -ErrorAction SilentlyContinue | Select-Object -First 1",
+            "    if ($found) { $npm = $found.Source; break }",
+            "}",
+            "if (-not $npm) { throw 'npm was not found on PATH; install Node.js first (scoop install nodejs) and retry' }",
+            "Write-Host ('Using npm: ' + $npm)",
+            "Push-Location $dir",
+            "& $npm install --omit=dev --ignore-scripts --include=optional --no-audit --no-fund --package-lock=false",
+            "$exitCode = $LASTEXITCODE",
+            "Pop-Location",
+            "if ($exitCode -ne 0) { throw 'npm install failed; check your npm registry and network, then retry' }",
+            "",
+            "# The CLI needs the better-sqlite3 native binding. npm install scripts are skipped on purpose,",
+            "# so fetch the same prebuilt archive the official installer uses, matched to the local Node ABI.",
+            "$sqliteDir = Join-Path (Join-Path $dir 'node_modules') 'better-sqlite3'",
+            "$sqliteManifest = Join-Path $sqliteDir 'package.json'",
+            "if (-not (Test-Path $sqliteManifest)) { throw 'better-sqlite3 was not installed; check the npm registry in use' }",
+            "$sqliteVersion = (Get-Content -Raw -Encoding UTF8 $sqliteManifest | ConvertFrom-Json).version",
+            "$abi = (& node -p 'process.versions.modules').Trim()",
+            "$nativeArch = if ($architecture -eq 'arm64') { 'arm64' } else { 'x64' }",
+            "$assetName = 'better-sqlite3-v' + $sqliteVersion + '-node-v' + $abi + '-win32-' + $nativeArch + '.tar.gz'",
+            "$nativeManifest = Invoke-RestMethod 'https://filecdn.minimax.chat/public/minimax-code/external/native/latest.json'",
+            "$asset = @($nativeManifest.native.betterSqlite3.assets | Where-Object { $_.name -eq $assetName })",
+            "if ($asset.Count -ne 1) { throw ('No verified prebuilt SQLite archive for Node ABI ' + $abi + ' (' + $assetName + '); use Node 22.19+, 24, 25 or 26') }",
+            "$archive = Join-Path $dir $assetName",
+            "Invoke-WebRequest -Uri $asset[0].url -OutFile $archive -UseBasicParsing",
+            "$archiveHash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash",
+            "if ($archiveHash -ne $asset[0].sha256.ToUpper()) { Remove-Item -LiteralPath $archive -Force; throw 'Native SQLite archive hash mismatch' }",
+            "Expand-7zipArchive -Path $archive -DestinationPath $sqliteDir -Removal",
+            "$binding = Join-Path (Join-Path (Join-Path $sqliteDir 'build') 'Release') 'better_sqlite3.node'",
+            "if (-not (Test-Path $binding)) { throw 'Native SQLite binding is missing after extraction' }",
+            "",
+            "Push-Location $dir",
+            "& node -e \"new (require('better-sqlite3'))(':memory:').prepare('select 1 as v').get()\"",
+            "$probeCode = $LASTEXITCODE",
+            "Pop-Location",
+            "if ($probeCode -ne 0) { throw 'better-sqlite3 failed to load; remove and reinstall this app' }",
+            "",
+            "# run the CLI straight from this package dir (no npm global shims)",
+            "$launcher = @('@echo off', 'node \"%~dp0cli.js\" %*')",
+            "[IO.File]::WriteAllLines((Join-Path $dir 'mcode.cmd'), $launcher, [Text.UTF8Encoding]::new($false))",
+            "$toolsLauncher = @('@echo off', 'node \"%~dp0mcode-tools.js\" %*')",
+            "[IO.File]::WriteAllLines((Join-Path $dir 'mcode-tools.cmd'), $toolsLauncher, [Text.UTF8Encoding]::new($false))",
+            "Write-Host ('Installed ' + $sqliteVersion + ' native SQLite binding for Node ABI ' + $abi)"
+        ]
+    },
+    "bin": [
+        [
+            "mcode.cmd",
+            "mcode"
+        ],
+        [
+            "mcode-tools.cmd",
+            "mcode-tools"
+        ]
+    ],
+    "checkver": {
+        "url": "https://registry.npmjs.org/@minimax-ai/code/latest",
+        "jsonpath": "$.version"
+    },
+    "autoupdate": {
+        "url": "https://registry.npmjs.org/@minimax-ai/code/-/code-$version.tgz#/dl.tgz",
+        "hash": {
+            "mode": "download"
+        }
+    }
+}
