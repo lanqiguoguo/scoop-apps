@@ -1,5 +1,5 @@
 {
-    "version": "0.6.8",
+    "version": "0.6.9",
     "description": "MiniMax Code CLI (mcode): MiniMax's open-source terminal coding agent; installs from the npm package @minimax-ai/code and shares the ~/.minimax data root with the MiniMax Code desktop app",
     "homepage": "https://github.com/MiniMax-AI/minimax-code",
     "license": "MIT",
@@ -15,8 +15,8 @@
         "所有文件都在 Scoop 自己的目录里，不使用 npm 的全局目录，也不需要管理员权限"
     ],
     "depends": "nodejs",
-    "url": "https://registry.npmjs.org/@minimax-ai/code/-/code-0.6.8.tgz#/dl.tgz",
-    "hash": "394f7b2f6a567ec4d2e2d8ccb3dfd59ca39e6fc6b085ba5ec998c83f0524b475",
+    "url": "https://registry.npmjs.org/@minimax-ai/code/-/code-0.6.9.tgz#/dl.tgz",
+    "hash": "a62520b78d3a9e77ce41576871541f1f2401a110b2c2b416d75f44e9eeb7d10f",
     "extract_dir": "package",
     "installer": {
         "script": [
