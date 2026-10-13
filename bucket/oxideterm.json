@@ -1,5 +1,5 @@
 {
-    "version": "2.2.2",
+    "version": "2.2.3",
     "description": "Native Rust SSH terminal and DevOps workspace with SFTP, AI, port forwarding and plugins",
     "homepage": "https://github.com/AnalyseDeCircuit/oxideterm",
     "license": "GPL-3.0-only",
@@ -12,8 +12,8 @@
     ],
     "architecture": {
         "64bit": {
-            "url": "https://gh-proxy.org/https://github.com/AnalyseDeCircuit/oxideterm/releases/download/v2.2.2/OxideTerm_2.2.2_windows_x64-setup.exe#/dl.7z",
-            "hash": "5507693cc484bce3cbb5326ea07adba46d32d56f8bff9482f51ec021118a7dc2"
+            "url": "https://gh-proxy.org/https://github.com/AnalyseDeCircuit/oxideterm/releases/download/v2.2.3/OxideTerm_2.2.3_windows_x64-setup.exe#/dl.7z",
+            "hash": "50d8dd0be38fa156db9140e5f8183e59b7500ef6e0d068159de08ab7e4d25589"
         }
     },
     "pre_install": "Remove-Item \"$dir\\`$*\", \"$dir\\uninstall.exe\" -Force -Recurse -ErrorAction SilentlyContinue",
