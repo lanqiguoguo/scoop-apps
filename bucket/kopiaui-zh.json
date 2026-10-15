@@ -1,0 +1,97 @@
+{
+    "version": "0.23.1",
+    "description": "Fast and secure open source backup (KopiaUI with an injected Simplified Chinese interface)",
+    "homepage": "https://github.com/lanqiguoguo/kopia",
+    "license": "Apache-2.0",
+    "architecture": {
+        "64bit": {
+            "url": "https://gh-proxy.org/https://github.com/lanqiguoguo/kopia/releases/download/v0.23.1/KopiaUI-0.23.1-win.zip",
+            "hash": "19f04cc75ec26da71956458270a758ec6075e1d276e56d03c09c9ea35c4f0514"
+        }
+    },
+    "bin": "resources\\server\\kopia.exe",
+    "shortcuts": [
+        [
+            "KopiaUI.exe",
+            "KopiaUI 简体中文"
+        ]
+    ],
+    "post_install": [
+        "ensure (Join-Path $persist_dir 'kopia-ui')",
+        "",
+        "# Electron userData dir: the packaged app name is 'kopia-ui' (package.json name), taken",
+        "# before electron.js sets app.name to KopiaUI, so the folder on disk is all lowercase.",
+        "$userData = Join-Path $env:APPDATA 'kopia-ui'",
+        "$dataDir = Join-Path $persist_dir 'kopia-ui'",
+        "if (Test-Path $userData) {",
+        "    $item = Get-Item -LiteralPath $userData -Force",
+        "    if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {",
+        "        Write-Host \"Already linked, leaving it as is: $userData\"",
+        "    } else {",
+        "        if (-not $item.PSIsContainer) { throw \"Path exists and is not a directory: $userData\" }",
+        "        & robocopy $userData $dataDir /E /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null",
+        "        if ($LASTEXITCODE -gt 7) {",
+        "            Write-Host \"Copy to persist failed, keeping the existing dir: $userData\"",
+        "        } else {",
+        "            $backup = \"$userData.backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')\"",
+        "            try {",
+        "                Move-Item -LiteralPath $userData -Destination $backup -Force",
+        "                New-Item -Path $userData -ItemType Junction -Value $dataDir | Out-Null",
+        "                Write-Host \"Linked app data dir to persist: $userData\"",
+        "            } catch {",
+        "                Write-Host \"Cannot rename the existing dir, skipped linking: $userData\"",
+        "            }",
+        "        }",
+        "    }",
+        "} else {",
+        "    New-Item -Path $userData -ItemType Junction -Value $dataDir | Out-Null",
+        "    Write-Host \"Linked app data dir to persist: $userData\"",
+        "}"
+    ],
+    "post_uninstall": [
+        "$link = Join-Path $env:APPDATA 'kopia-ui'",
+        "if (Test-Path $link) {",
+        "    $item = Get-Item -LiteralPath $link -Force",
+        "    if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {",
+        "        # Remove-Item -Force can throw a NullReferenceException on junctions in PS 5.1",
+        "        try {",
+        "            [System.IO.Directory]::Delete($link)",
+        "        } catch {",
+        "            Remove-Item -LiteralPath $link -Force",
+        "        }",
+        "        Write-Host \"Removed link, data is kept in persist: $link\"",
+        "    }",
+        "}"
+    ],
+    "notes": [
+        "KopiaUI 简体中文版：由 lanqiguoguo/kopia 的 GitHub Actions 自动汉化构建，每晚检查上游正式版（kopia/kopia）后合并并发布；当前基于上游 v0.23.1",
+        "汉化只作用于 Electron 界面：向 resources/preload.js 注入整串替换词典、替换托盘菜单文案；Go 服务端与命令行（resources/server/kopia.exe）保持上游原样，CLI 输出仍是英文",
+        "安装包未做代码签名，首次运行若出现 SmartScreen 提示请选择「仍要运行」",
+        "数据目录（依据 0.23.1 发布包里的 electron.js / config.js 核对）：",
+        "  - %APPDATA%\\kopia-ui：Electron 用户数据。目录名取自打包后 package.json 里的 name（kopia-ui），不是界面上的 KopiaUI；其下有运行日志 logs、窗口状态 config.json 与 Chromium 缓存，已 Junction 到 persist\\kopia-ui",
+        "  - %APPDATA%\\kopia：仓库配置文件 repository.config（多仓库时还有 repository-<时间戳>.config）与界面偏好 ui-preferences.json。上游刻意让 UI 与 Kopia CLI 共用这一目录，本包不接管、也不设重定向变量",
+        "  - %LOCALAPPDATA%\\kopia：服务端/CLI 的内容缓存与 cli-logs（与 CLI 共用，本包不接管）",
+        "  - %LOCALAPPDATA%\\kopia-ui-updater：应用内更新的安装包缓存（用过应用内更新才会出现，本包不接管）",
+        "首次安装时 %APPDATA%\\kopia-ui 若已存在，会先整体搬到 persist，原位置改名 .backup-<时间戳> 备份；卸载只摘除 Junction，persist 数据保留",
+        "仓库数据本身存在你自己配置的存储位置（文件系统/网盘/S3 等），上述配置目录只保存指向它的配置与缓存",
+        "应用内更新读取本仓库自己的 latest.yml（electron-updater，下载 NSIS 安装包 KopiaUI-Setup-*.exe，默认装到 %LOCALAPPDATA%\\Programs\\KopiaUI，与 Scoop 这份并存）：用 Scoop 管理时建议不要用应用内更新，改用 scoop update kopiaui-zh",
+        "应用内「开机启动」会在 HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run 写入名为 Kopia 的项，指向当前版本安装目录；scoop update 更换版本目录后建议在应用里重新开关一次",
+        "附带 kopia 命令行（与 Scoop 官方 kopiaui 包一样暴露为 kopia 命令，未汉化）；同时安装官方 kopiaui 时两者的 kopia shim 会互相覆盖（Scoop 会提示冲突）"
+    ],
+    "persist": [
+        "kopia-ui"
+    ],
+    "checkver": {
+        "github": "https://github.com/lanqiguoguo/kopia"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://gh-proxy.org/https://github.com/lanqiguoguo/kopia/releases/download/v$version/KopiaUI-$version-win.zip"
+            }
+        },
+        "hash": {
+            "mode": "download"
+        }
+    }
+}
