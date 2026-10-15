@@ -72,6 +72,7 @@
         "  - %APPDATA%\\kopia：仓库配置文件 repository.config（多仓库时还有 repository-<时间戳>.config）与界面偏好 ui-preferences.json。上游刻意让 UI 与 Kopia CLI 共用这一目录，本包不接管、也不设重定向变量",
         "  - %LOCALAPPDATA%\\kopia：服务端/CLI 的内容缓存与 cli-logs（与 CLI 共用，本包不接管）",
         "  - %LOCALAPPDATA%\\kopia-ui-updater：应用内更新的安装包缓存（用过应用内更新才会出现，本包不接管）",
+        "官方 kopiaui 包（Extras/main 桶）与 zh 版使用同一批目录：%APPDATA%\\kopia 与 %APPDATA%\\kopia-ui 两版共用，同时安装两版时会看到同一份仓库列表与同一份窗口状态",
         "首次安装时 %APPDATA%\\kopia-ui 若已存在，会先整体搬到 persist，原位置改名 .backup-<时间戳> 备份；卸载只摘除 Junction，persist 数据保留",
         "仓库数据本身存在你自己配置的存储位置（文件系统/网盘/S3 等），上述配置目录只保存指向它的配置与缓存",
         "应用内更新读取本仓库自己的 latest.yml（electron-updater，下载 NSIS 安装包 KopiaUI-Setup-*.exe，默认装到 %LOCALAPPDATA%\\Programs\\KopiaUI，与 Scoop 这份并存）：用 Scoop 管理时建议不要用应用内更新，改用 scoop update kopiaui-zh",
