@@ -1,5 +1,5 @@
 {
-    "version": "3.1.4",
+    "version": "3.1.6",
     "description": "MiniMax Code desktop client: MiniMax's AI agent app for coding and office work, bundling a local runtime (mcode) with computer use and browser tools",
     "homepage": "https://agent.minimax.cn/docs/code/welcome",
     "license": "Freeware",
@@ -17,12 +17,12 @@
     ],
     "architecture": {
         "64bit": {
-            "url": "https://filecdn.minimax.chat/public/minimax-agent-prod/release/MiniMax%20Code%20Setup%203.1.4.exe#/dl.7z",
-            "hash": "3b1343cdc0c818a159ca49abdddf78a62b6238c101ed3e83f0f356f8be3bb914"
+            "url": "https://filecdn.minimax.chat/public/minimax-agent-prod/release/MiniMax%20Code%20Setup%203.1.6.exe#/dl.7z",
+            "hash": "165d5c03700af869428679ed89ce66961adfffeeb32f91cbbe8ba0256f931cfb"
         },
         "arm64": {
-            "url": "https://filecdn.minimax.chat/public/minimax-agent-prod/release/MiniMax%20Code%20Setup%203.1.4.exe#/dl.7z",
-            "hash": "3b1343cdc0c818a159ca49abdddf78a62b6238c101ed3e83f0f356f8be3bb914"
+            "url": "https://filecdn.minimax.chat/public/minimax-agent-prod/release/MiniMax%20Code%20Setup%203.1.6.exe#/dl.7z",
+            "hash": "165d5c03700af869428679ed89ce66961adfffeeb32f91cbbe8ba0256f931cfb"
         }
     },
     "pre_install": [
