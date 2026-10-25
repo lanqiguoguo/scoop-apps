@@ -1,5 +1,5 @@
 {
-    "version": "1.1.2",
+    "version": "1.1.3",
     "description": "Kimi Code desktop client: Moonshot AI's AI coding agent app with a bundled kimi-code runtime, sharing local configuration with the Kimi Code CLI",
     "homepage": "https://www.kimi.com/code/docs/kimi-code-desktop/getting-started.html",
     "license": "Freeware",
@@ -16,8 +16,8 @@
     ],
     "architecture": {
         "64bit": {
-            "url": "https://code.kimi.com/kimi-code/desktop/binaries/1.1.2/KimiCode-1.1.2-win-x64.exe#/dl.7z",
-            "hash": "e32f6c56606d0a35a8d2566692c16c92d290cdfb7bfa1603361d2eff77ea7e91"
+            "url": "https://code.kimi.com/kimi-code/desktop/binaries/1.1.3/KimiCode-1.1.3-win-x64.exe#/dl.7z",
+            "hash": "e968b1c0dccd760373be6e32d673a743cb200481a10cb0b2548a50e657685f38"
         }
     },
     "pre_install": [
