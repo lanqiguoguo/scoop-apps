@@ -1,12 +1,12 @@
 {
-    "version": "0.6.5",
+    "version": "0.6.6",
     "description": "Desktop GUI for the Pi coding agent with multi-session chat, visual tool approvals and custom themes",
     "homepage": "https://github.com/Jaxton07/percho",
     "license": "MIT",
     "architecture": {
         "64bit": {
-            "url": "https://gh-proxy.org/https://github.com/Jaxton07/percho/releases/download/v0.6.5/percho-windows-x64.zip",
-            "hash": "c27c73fc3f406fe63875c0be08b07ae36b2cd7f3b9d7d0ea055e999e28bf7b01"
+            "url": "https://gh-proxy.org/https://github.com/Jaxton07/percho/releases/download/v0.6.6/percho-windows-x64.zip",
+            "hash": "04e7d3f78d7080218b67811a28adc179c9bb683dbe4a36f48e855250b7b17028"
         }
     },
     "bin": "Percho.exe",
